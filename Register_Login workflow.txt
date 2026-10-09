@@ -1,0 +1,116 @@
+// Register workflow
+
+React Frontend
+      ↓
+POST /api/v1/auth/register
+      ↓
+app/main.py
+      ↓
+app/routes/auth_routes.py
+      ↓
+app/schemas/auth.py
+      ↓
+app/services/auth_service.py
+      ↓
+app/repositories/user_repository.py
+      ↓
+app/models/user.py
+      ↓
+SQL Server APP.USER
+      ↓
+app/repositories/role_repository.py
+      ↓
+app/models/role.py
+      ↓
+SQL Server APP.ROLE
+      ↓
+app/repositories/user_role_repository.py
+      ↓
+app/models/user_role.py
+      ↓
+SQL Server APP.USER_ROLE
+      ↓
+COMMIT
+      ↓
+app/schemas/user.py
+      ↓
+HTTP 201 Response
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// login Workflow
+
+
+
+
+Client / Swagger
+      ↓
+POST /api/v1/auth/login
+      ↓
+app/main.py
+      ↓
+app/routes/auth_routes.py
+      ↓
+app/schemas/auth.py
+      ↓
+app/database.py
+      ↓
+app/services/auth_service.py
+      ↓
+app/repositories/user_repository.py
+      ↓
+app/models/user.py
+      ↓
+SQL Server APP.USER
+      ↓
+app/security/password.py
+      ↓
+bcrypt password verification
+      ↓
+app/repositories/user_role_repository.py
+      ↓
+app/models/user_role.py
+app/models/role.py
+      ↓
+SQL Server APP.USER_ROLE + APP.ROLE
+      ↓
+app/repositories/user_session_repository.py
+      ↓
+app/models/user_session.py
+      ↓
+SQL Server APP.USER_SESSION
+      ↓
+app/repositories/user_repository.py
+      ↓
+Update LAST_LOGIN_TSTMP
+      ↓
+app/security/jwt.py
+      ↓
+Generate Access JWT
+      ↓
+app/schemas/auth.py
+      ↓
+LoginResponse
+      ↓
+HTTP 200 OK
