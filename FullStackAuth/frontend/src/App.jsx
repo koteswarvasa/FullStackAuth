@@ -12,17 +12,20 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
+import ForgotPassword from "./pages/ForgotPassword";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+          {/* Redirect the root URL to Login */}
           <Route
             path="/"
             element={<Navigate to="/login" replace />}
           />
 
+          {/* Public routes */}
           <Route
             path="/login"
             element={<Login />}
@@ -34,6 +37,12 @@ function App() {
           />
 
           <Route
+            path="/forgot-password"
+            element={<ForgotPassword />}
+          />
+
+          {/* Protected route */}
+          <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
@@ -42,6 +51,7 @@ function App() {
             }
           />
 
+          {/* Redirect unknown URLs to Login */}
           <Route
             path="*"
             element={<Navigate to="/login" replace />}

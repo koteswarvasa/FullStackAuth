@@ -1,10 +1,12 @@
+from datetime import datetime
 from sqlalchemy import (
     BigInteger,
     Boolean,
     DateTime,
     Identity,
     String,
-    text
+    text,
+    Integer
 )
 
 from sqlalchemy.orm import Mapped, mapped_column
@@ -95,4 +97,24 @@ class User(Base):
         "UPDATED_BY",
         String(100),
         nullable=True
+    )
+
+
+    password_reset_otp_hash: Mapped[str | None] = mapped_column(
+        "PASSWORD_RESET_OTP_HASH",
+        String(64),
+        nullable=True,
+    )
+
+    password_reset_otp_expires_tstmp: Mapped[datetime | None] = mapped_column(
+        "PASSWORD_RESET_OTP_EXPIRES_TSTMP",
+        DateTime,
+        nullable=True,
+    )
+
+    password_reset_otp_attempts: Mapped[int] = mapped_column(
+        "PASSWORD_RESET_OTP_ATTEMPTS",
+        Integer,
+        nullable=False,
+        default=0,
     )
