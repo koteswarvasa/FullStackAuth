@@ -19,6 +19,7 @@ from app.schemas.auth import (
     LoginRequest,
     LoginResponse,
     RegisterRequest,
+    ResetPasswordRequest,
 )
 from app.schemas.user import UserResponse
 from app.services.auth_service import AuthService
@@ -32,6 +33,11 @@ from app.repositories.user_session_repository import (
 )
 from app.models.user import User
 
+from sqlalchemy.orm import Session
+
+from app.database import get_db
+from app.schemas.auth import ForgotPasswordRequest
+from app.services.password_reset_service import PasswordResetService
 
 router = APIRouter(
     prefix="/api/v1/auth",
@@ -219,3 +225,36 @@ def refresh(
     )
 
     return login_response
+
+@router.post("/forgot-password")
+def forgot_password(
+    request: ForgotPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    PasswordResetService.request_password_reset(
+        db=db,
+        email=request.email
+    )
+
+    return {
+        "message": (
+            "If an account exists for this email, "
+            "a password-reset code will be sent."
+        )
+    }
+
+@router.post("/reset-password")
+def reset_password(
+    request: ResetPasswordRequest,
+    db: Session = Depends(get_db)
+):
+    PasswordResetService.reset_password(
+        db=db,
+        email=str(request.email),
+        otp=request.otp,
+        new_password=request.new_password
+    )
+
+    return {
+        "message": "Password reset successfully."
+    }

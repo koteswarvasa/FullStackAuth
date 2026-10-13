@@ -2,9 +2,8 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
-from sqlalchemy import select
 
 from app.models.user_session import UserSession
 
@@ -14,6 +13,7 @@ class UserSessionRepository:
     def __init__(self, db: Session):
         self.db = db
 
+    # Create a new user session
     def create(
         self,
         user_id: int,
@@ -36,22 +36,21 @@ class UserSessionRepository:
 
         return user_session
 
+    # Find session by its ID
     def find_by_session_id(
         self,
         session_id: UUID
     ) -> UserSession | None:
 
-        statement = (
-            select(UserSession)
-            .where(
-                UserSession.session_id == session_id
-            )
+        statement = select(UserSession).where(
+            UserSession.session_id == session_id
         )
 
         return self.db.execute(
             statement
         ).scalar_one_or_none()
 
+    # Update an individual session status
     def update_session_status(
         self,
         user_session: UserSession,
@@ -59,34 +58,71 @@ class UserSessionRepository:
         updated_by: str
     ) -> UserSession:
 
+        now = datetime.now()
+
         user_session.session_status_cd = status_code
-        user_session.updated_tstmp = datetime.now()
+        user_session.updated_tstmp = now
         user_session.updated_by = updated_by
 
-        if status_code == "LOGGED_OUT":
-            user_session.logout_tstmp = datetime.now()
+        if status_code in ("LOGGED_OUT", "REVOKED"):
+            user_session.logout_tstmp = now
 
         self.db.flush()
 
         return user_session
-    
+
+    # Save refresh token hash
     def set_refresh_token_hash(
-    self,
-    user_session: UserSession,
-    refresh_token_hash: str
+        self,
+        user_session: UserSession,
+        refresh_token_hash: str
     ) -> UserSession:
+
         user_session.refresh_token_hash = refresh_token_hash
 
         self.db.flush()
 
         return user_session
 
-    
+    # Find session using refresh token hash
     def find_by_refresh_token_hash(
-        self, refresh_token_hash: str
+        self,
+        refresh_token_hash: str
     ) -> UserSession | None:
+
         statement = select(UserSession).where(
             UserSession.refresh_token_hash == refresh_token_hash
         )
-        return self.db.execute(statement).scalar_one_or_none()
 
+        return self.db.execute(
+            statement
+        ).scalar_one_or_none()
+
+    # Revoke every active session belonging to a user
+    def revoke_all_active_sessions(
+        self,
+        user_id: int,
+        updated_by: str
+    ) -> int:
+
+        now = datetime.now()
+
+        statement = (
+            update(UserSession)
+            .where(
+                UserSession.user_id == user_id,
+                UserSession.session_status_cd == "ACTIVE"
+            )
+            .values(
+                session_status_cd="REVOKED",
+                logout_tstmp=now,
+                updated_tstmp=now,
+                updated_by=updated_by
+            )
+        )
+
+        result = self.db.execute(statement)
+
+        self.db.flush()
+
+        return result.rowcount or 0

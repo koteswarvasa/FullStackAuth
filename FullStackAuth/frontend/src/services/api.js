@@ -40,6 +40,7 @@ export async function apiRequest(
     return parseResponse(response);
   }
 
+  // Refresh the access token using the refresh cookie.
   const refreshResponse = await fetch(
     `${API_BASE_URL}/api/v1/auth/refresh`,
     {
@@ -50,14 +51,18 @@ export async function apiRequest(
 
   if (!refreshResponse.ok) {
     auth.logout?.();
-    throw new Error("Your session expired. Please log in again.");
+    throw new Error(
+      "Your session expired. Please log in again."
+    );
   }
 
   const refreshData = await refreshResponse.json();
 
   if (!refreshData.access_token) {
     auth.logout?.();
-    throw new Error("Refresh response did not contain an access token.");
+    throw new Error(
+      "Refresh response did not contain an access token."
+    );
   }
 
   auth.updateAccessToken(refreshData.access_token);
@@ -67,7 +72,9 @@ export async function apiRequest(
 
   if (response.status === 401) {
     auth.logout?.();
-    throw new Error("Your session expired. Please log in again.");
+    throw new Error(
+      "Your session expired. Please log in again."
+    );
   }
 
   return parseResponse(response);
@@ -78,9 +85,36 @@ async function parseResponse(response) {
 
   if (!response.ok) {
     throw new Error(
-      data?.detail || `Request failed with status ${response.status}`
+      data?.detail ||
+      `Request failed with status ${response.status}`
     );
   }
 
   return data;
+}
+
+// Request a password-reset OTP.
+export function requestPasswordReset(email) {
+  return apiRequest("/api/v1/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+// Verify the OTP and reset the password.
+export function resetPassword(
+  email,
+  otp,
+  newPassword,
+  confirmPassword
+) {
+  return apiRequest("/api/v1/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      otp,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    }),
+  });
 }
